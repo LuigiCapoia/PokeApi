@@ -14,7 +14,7 @@ export class PokemonController {
 
     @Get(':id')
     findOne(@Param('id') id: string) {
-        return this.pokemonService.findOne(Number(id));
+        return this.pokemonService.findOne(id);
     }
 
     @Post()
@@ -24,12 +24,11 @@ export class PokemonController {
 
     @Patch(':id')
     update(@Param('id') id: string, @Body() updateDto: UpdatePokemonDto) {
-        return this.pokemonService.update(Number(id), updateDto);
+        return this.pokemonService.update(id, updateDto);
     }
 
     @Delete(':id')
     remove(@Param('id') id: string) {
-        this.pokemonService.remove(Number(id));
-        return { message: 'Pokémon removido com sucesso' };
+        return this.pokemonService.remove(id);
     }
 }

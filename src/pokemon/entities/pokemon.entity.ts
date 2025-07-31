@@ -1,5 +1,15 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+
+export type PokemonDocument = Pokemon & Document;
+
+@Schema()
 export class Pokemon {
-    id: number;
+    @Prop({ required: true, unique: true })
     name: string;
+
+    @Prop({ required: true })
     type: string;
 }
+
+export const PokemonSchema = SchemaFactory.createForClass(Pokemon);

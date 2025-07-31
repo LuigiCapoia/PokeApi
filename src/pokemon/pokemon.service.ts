@@ -1,37 +1,41 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Pokemon } from './entities/pokemon.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Pokemon, PokemonDocument } from './entities/pokemon.entity';
+import { CreatePokemonDto } from './dto/create-pokemon.dto';
+import { UpdatePokemonDto } from './dto/update-pokemon.dto';
 
 @Injectable()
 export class PokemonService {
-    private pokemons: Pokemon[] = [
-        { id: 1, name: 'Bulbasaur', type: 'Grass' },
-        { id: 2, name: 'Charmander', type: 'Fire' },
-    ];
+    constructor(
+        @InjectModel(Pokemon.name) private pokemonModel: Model<PokemonDocument>,
+    ) { }
 
-    findAll(): Pokemon[] {
-        return this.pokemons;
+    async findAll(): Promise<Pokemon[]> {
+        return this.pokemonModel.find().exec();
     }
 
-    findOne(id: number): Pokemon {
-        const pokemon = this.pokemons.find(p => p.id === id);
-        if (!pokemon) throw new NotFoundException('Pokémon not found');
+    async findOne(id: string): Promise<Pokemon> {
+        const pokemon = await this.pokemonModel.findById(id).exec();
+        if (!pokemon) throw new NotFoundException('Pokémon não encontrado');
         return pokemon;
     }
 
-    create(pokemon: Pokemon): Pokemon {
-        this.pokemons.push(pokemon);
-        return pokemon;
+    async create(dto: CreatePokemonDto): Promise<Pokemon> {
+        const created = new this.pokemonModel(dto);
+        return created.save();
     }
 
-    update(id: number, data: Partial<Pokemon>): Pokemon {
-        const pokemon = this.findOne(id);
-        Object.assign(pokemon, data);
-        return pokemon;
+    async update(id: string, dto: UpdatePokemonDto): Promise<Pokemon> {
+        const updated = await this.pokemonModel
+            .findByIdAndUpdate(id, dto, { new: true })
+            .exec();
+        if (!updated) throw new NotFoundException('Pokémon não encontrado');
+        return updated;
     }
 
-    remove(id: number): void {
-        const index = this.pokemons.findIndex(p => p.id === id);
-        if (index === -1) throw new NotFoundException('Pokémon not found');
-        this.pokemons.splice(index, 1);
+    async remove(id: string): Promise<void> {
+        const result = await this.pokemonModel.findByIdAndDelete(id).exec();
+        if (!result) throw new NotFoundException('Pokémon não encontrado');
     }
 }
